@@ -37,22 +37,25 @@ class Neuron {
 
 int main(){
     Neuron neuron(1);
-    double input = 4.0;
-    double target = 1.0;
+    std::vector<double> inputs = { 1.0, 2.0, 3.0, 4.0 };
+    std::vector<double> targets = { 0.0, 0.0, 1.0, 1.0 };
     double learningRate = 0.01;
-    std::vector<double> inputs = { input };
-    double prediction = neuron.forward(inputs);
-    double error = prediction - target;
-    std::cout << "--------Before Training--------" << std::endl;
-    std::cout << "Prediction: " << prediction << '\n';
-    std::cout << "Error: " << error << '\n';
-    std::cout << "--------After Training---------" << std::endl;
-    for(int epoch = 0; epoch < 20; epoch++){
-        neuron.train(inputs, target, learningRate);
+    
+    //train
+    for(int epoch = 0; epoch < 50; epoch++){
+        for(int i = 0; i < inputs.size(); i++){
+            std::vector<double> input = { inputs[i] };
+            neuron.train(input, targets[i], learningRate);
+        }
     }
-    double newPrediction = neuron.forward(inputs);
-    double newError = newPrediction - target;
-    std::cout << "Prediction: " << newPrediction << '\n';
-    std::cout << "Error: " << newError << '\n';
+    
+    //predict
+    for(int i = 0; i < inputs.size(); i++){
+        std::vector<double> input = { inputs[i] };
+        double prediction = neuron.forward(input);
+        std::cout << "Input: " << inputs[i] << " Prediction: " << prediction << " Target: " << targets[i] << std::endl;
+    }
+
+
     return 0;
 }
