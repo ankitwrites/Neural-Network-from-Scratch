@@ -47,7 +47,9 @@ int main(){
     std::cout << "Prediction: " << prediction << '\n';
     std::cout << "Error: " << error << '\n';
     std::cout << "--------After Training---------" << std::endl;
-    neuron.train(inputs, target, learningRate);
+    for(int epoch = 0; epoch < 20; epoch++){
+        neuron.train(inputs, target, learningRate);
+    }
     double newPrediction = neuron.forward(inputs);
     double newError = newPrediction - target;
     std::cout << "Prediction: " << newPrediction << '\n';
