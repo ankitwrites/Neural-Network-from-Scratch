@@ -51,25 +51,23 @@ class Neuron {
 };
 
 int main(){
-    Neuron neuron(1);
-    std::vector<double> inputs = { 1.0, 2.0, 3.0, 4.0 };
+    Neuron neuron(2);
+    std::vector<std::vector<double>> inputs = { {1.0, 1.0}, {1.0, 2.0}, {2.0, 3.0}, {3.0, 3.0} };
     std::vector<double> targets = { 0.0, 0.0, 1.0, 1.0 };
     double learningRate = 0.01;
     
     //train
     for(int epoch = 0; epoch < 10000; epoch++){
         for(int i = 0; i < inputs.size(); i++){
-            std::vector<double> input = { inputs[i] };
-            neuron.train(input, targets[i], learningRate);
+            neuron.train(inputs[i], targets[i], learningRate);
         }
     }
     
     //predict
     for(int i = 0; i < inputs.size(); i++){
-        std::vector<double> input = { inputs[i] };
-        double prediction = neuron.forward(input);
+        double prediction = neuron.forward(inputs[i]);
         double result = classify(prediction);
-        std::cout << "Input: " << inputs[i] << " Prediction: " << prediction << " Result: " << result << " Target: " << targets[i] << std::endl;
+        std::cout << "Input: [" << inputs[i][0] << ", " << inputs[i][1] << "] Prediction: " << prediction << " Result: " << result << " Target: " << targets[i] << std::endl;
     }
 
 
