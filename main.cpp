@@ -224,18 +224,29 @@ int main(){
                     totalLoss += calculateLoss(finalOutput[0], targets[i]);
                 }
                 double averageLoss = totalLoss / trainingInputs.size();
-                std::cout << "epoch : " << epoch + 1 << " average Loss: " << averageLoss << "\n";
+                //std::cout << "epoch : " << epoch + 1 << " average Loss: " << averageLoss << "\n";
             }
         }
     }
+
+    int correct = 0;
 
     for(int i = 0; i < trainingInputs.size(); i++){
         std::vector<double> hiddenOutputs = layer.forward(trainingInputs[i]);
 
         std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
 
-        std::cout << "Prediction: " << finalOutput[0] << " target: " << targets[i] << "\n";
+        int predictedClass = classify(finalOutput[0]);
+
+        if(predictedClass == static_cast<int>(targets[i])){
+            correct++;
+        }
+
+        std::cout << "Input: [" << trainingInputs[i][0] << ", " << trainingInputs[i][1] << "]" << " Prediction: " << finalOutput[0] << " Predicted Class: " << predictedClass << " target: " << targets[i] << "\n";
     }
+
+    double accuracy = 100.0 * correct / trainingInputs.size();
+    std::cout << "Accuracy: " << accuracy << "%\n";
 
 
     return 0;
