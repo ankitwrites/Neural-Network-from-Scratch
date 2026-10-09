@@ -168,8 +168,8 @@ int main(){
 
     double learningRate = 0.01;
 
-    std::vector<double> inputs = { 2.0, 3.0 };
-    double target = 1.0;
+    std::vector<std::vector<double>> trainingInputs = { {1.0, 1.0}, {1.0, 2.0}, {2.0, 3.0}, {3.0, 3.0} };
+    std::vector<double> targets = { 0.0, 0.0, 1.0, 1.0 };
 
     /*std::vector<double> targets = { 1.0, 0.0, 1.0};
 
@@ -191,26 +191,30 @@ int main(){
     }*/
 
     for(int epoch = 0; epoch < 10000; epoch++){
-        std::vector<double> hiddenOutputs = layer.forward(inputs);
+        for(int i = 0; i < trainingInputs.size(); i++){
+
+
+            std::vector<double> hiddenOutputs = layer.forward(trainingInputs[i]);
+
+            std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
+
+            double outputGradient = outputLayer.calculateGradient(targets[i]);
+
+            std::vector<double> hiddenGradients = layer.calculateHiddenGradients(outputGradient, outputLayer);
+
+            layer.updateHiddenWeights(trainingInputs[i], hiddenGradients, learningRate);
+
+            outputLayer.updateWeights(hiddenOutputs, outputGradient, learningRate);
+        }
+    }
+
+    for(int i = 0; i < trainingInputs.size(); i++){
+        std::vector<double> hiddenOutputs = layer.forward(trainingInputs[i]);
 
         std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
 
-        double outputGradient = outputLayer.calculateGradient(target);
-
-        std::vector<double> hiddenGradients = layer.calculateHiddenGradients(outputGradient, outputLayer);
-
-        layer.updateHiddenWeights(inputs, hiddenGradients, learningRate);
-
-        outputLayer.updateWeights(hiddenOutputs, outputGradient, learningRate);
+        std::cout << "Prediction: " << finalOutput[0] << " target: " << targets[i] << "\n";
     }
-
-    std::vector<double> hiddenOutputs = layer.forward(inputs);
-
-    std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
-
-    std::cout << "Prediction: " << finalOutput[0] << '\n';
-
-    std::cout << "Target: " << target << '\n';
 
 
     return 0;
