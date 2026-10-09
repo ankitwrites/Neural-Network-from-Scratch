@@ -2,6 +2,7 @@
 #include<vector>
 #include<random>
 #include<cmath>
+#include<fstream>
 
 //define sigmoid(x) = 1/(1 + e^(-x))
 double sigmoid(double x){
@@ -75,6 +76,32 @@ class Neuron {
         double calculateHiddenGradient(double outputGradient, double outputWeight){
             return lastOutput * (1.0 - lastOutput) * outputGradient * outputWeight;
         }
+
+        void save(std::ofstream& file) const {
+            file << weights.size() << '\n';
+
+            for(double weight : weights) {
+                file << weight << '\n';
+            }
+
+            file << bias << '\n';
+        }
+
+        bool load(std::ifstream& file){
+            int weightCount;
+            file >> weightCount;
+
+            if(!file || weightCount != weights.size()){
+                return false;
+            }
+
+            for(int i = 0; i < weightCount; i++){
+                file >> weights[i];
+            }
+            file >> bias;
+
+            return static_cast<bool> (file);
+        }
 };
 
 class Layer {
@@ -129,6 +156,27 @@ class Layer {
             }
         }
 
+        void save(std::ofstream& file) const {
+            file << neurons.size() << '\n';
+            for(const Neuron& neuron : neurons){
+                neuron.save(file);
+            }
+        }
+
+        bool load(std::ifstream& file){
+            int neuronCount;
+            file >> neuronCount;
+            if(!file || neuronCount != neurons.size()){
+                return false;
+            }
+            for(Neuron& neuron : neurons){
+                if(!neuron.load(file)){
+                    return false;
+                }
+            }
+            return true;
+        }
+
 };
 
 void trainNetwork(Layer& layer, Layer& outputLayer, const std::vector<std::vector<double>>& trainingInputs, const std::vector<double>& targets, int epochs, double learningRate){
@@ -174,6 +222,31 @@ double predict(Layer& layer, Layer& outputLayer, const std::vector<double>& inpu
     return finalOutput[0];
 }
 
+void saveModel(const Layer& layer, const Layer& outputLayer){
+    std::ofstream file("model.txt");
+    if(!file.is_open()){
+        std::cout << "Could not save model.\n";
+        return;
+    }
+    layer.save(file);
+    outputLayer.save(file);
+    std::cout << "Model Saved.\n";
+}
+
+bool loadModel(Layer& layer, Layer& outputLayer){
+    std::ifstream file("model.txt");
+    if(!file.is_open()){
+        return false;
+    }
+    if(!layer.load(file)){
+        return false;
+    }
+    if(!outputLayer.load(file)){
+        return false;
+    }
+    return true;
+}
+
 int main(){
 
     Layer layer(2, 3);
@@ -189,7 +262,13 @@ int main(){
 
     std::cout << "Training-------------------" << "\n";
 
-    trainNetwork(layer, outputLayer, trainingInputs, targets, 10000, learningRate);
+    if(loadModel(layer, outputLayer)){
+        std::cout << "Model loaded successfully.\n";
+    } else {
+        std::cout << "Model could not be loaded. Hence, training from scratch...\n";
+        trainNetwork(layer, outputLayer, trainingInputs, targets, 10000, learningRate);
+        saveModel(layer, outputLayer);
+    }
 
     int correct = 0;
 
