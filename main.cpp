@@ -45,16 +45,6 @@ class Neuron {
             return weights[index];
         }
 
-        /*void train(const std::vector<double>& inputs, double target, double learningRate) {
-            double prediction = forward(inputs);
-            double error = prediction - target;
-            for(int i = 0; i < inputs.size(); i++){
-                //derivative of sigmoid is sigmoid'(x) = prediction * (1 - prediction)
-                weights[i] -= learningRate * error * inputs[i] * prediction * (1 - prediction);
-            }
-            bias -= learningRate * error * prediction * (1 - prediction);
-        }*/
-
         double forward(const std::vector<double> & inputs){
             double sum = bias;
             for(int i = 0; i < inputs.size(); i++){
@@ -115,14 +105,6 @@ class Layer {
             return neurons[0].getWeight(index);
         }
 
-        /*void train(const std::vector<double>& inputs, const std::vector<double>& targets, double learningRate){
-            for(int i = 0; i  < neurons.size(); i++){
-
-                neurons[i].train(inputs, targets[i], learningRate);
-
-            }
-        }*/
-
         double calculateGradient(double target){
             return neurons[0].calculateGradient(target);
         }
@@ -149,57 +131,8 @@ class Layer {
 
 };
 
-int main(){
-    /*Neuron neuron(2);
-    std::vector<std::vector<double>> inputs = { {1.0, 1.0}, {1.0, 2.0}, {2.0, 3.0}, {3.0, 3.0} };
-    std::vector<double> targets = { 0.0, 0.0, 1.0, 1.0 };
-    double learningRate = 0.01;
-    
-    //train
-    for(int epoch = 0; epoch < 10000; epoch++){
-        for(int i = 0; i < inputs.size(); i++){
-            neuron.train(inputs[i], targets[i], learningRate);
-        }
-    }
-    
-    //predict
-    for(int i = 0; i < inputs.size(); i++){
-        double prediction = neuron.forward(inputs[i]);
-        double result = classify(prediction);
-        std::cout << "Input: [" << inputs[i][0] << ", " << inputs[i][1] << "] Prediction: " << prediction << " Result: " << result << " Target: " << targets[i] << std::endl;
-    }*/
-
-    Layer layer(2, 3);
-    Layer outputLayer(3, 1);
-
-    double learningRate = 0.01;
-
-    std::vector<std::vector<double>> trainingInputs = { {1.0, 1.0}, {1.0, 2.0}, {2.0, 3.0}, {3.0, 3.0} };
-    std::vector<double> targets = { 0.0, 0.0, 1.0, 1.0 };
-
-    std::vector<std::vector<double>> testInputs = { {1.0, 3.0}, {3.0, 2.0} };
-    std::vector<double> testTargets = { 0.0, 1.0 };
-
-    /*std::vector<double> targets = { 1.0, 0.0, 1.0};
-
-    for(int epoch = 0; epoch < 10000; epoch++){
-        layer.train(inputs, targets, learningRate);
-    }*/
-
-    /*for(int epoch = 0; epoch < 1000; epoch++){
-        std::vector<double> hiddenOutputs = layer.forward(inputs);
-
-        std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
-    
-
-        double gradient = outputLayer.calculateGradient(target);
-
-        std::cout << "Prediction: " << finalOutput[0] << " Gradient: " << gradient << '\n';
-
-        outputLayer.updateWeights(hiddenOutputs, gradient, learningRate);
-    }*/
-
-    for(int epoch = 0; epoch < 10000; epoch++){
+void trainNetwork(Layer& layer, Layer& outputLayer, const std::vector<std::vector<double>>& trainingInputs, const std::vector<double>& targets, int epochs, double learningRate){
+    for(int epoch = 0; epoch < epochs; epoch++){
         for(int i = 0; i < trainingInputs.size(); i++){
 
 
@@ -217,7 +150,7 @@ int main(){
 
 
             //loss after every 1,000 epochs
-            if((epoch + 1) % 1000 == 0){
+            /*if((epoch + 1) % 1000 == 0){
                 double totalLoss = 0.0;
                 for(int i = 0; i < trainingInputs.size(); i++){
                     std::vector<double> hiddenOutputs = layer.forward(trainingInputs[i]);
@@ -228,24 +161,48 @@ int main(){
                 }
                 double averageLoss = totalLoss / trainingInputs.size();
                 //std::cout << "epoch : " << epoch + 1 << " average Loss: " << averageLoss << "\n";
-            }
+            }*/
         }
     }
+}
+
+double predict(Layer& layer, Layer& outputLayer, const std::vector<double>& inputs){
+    std::vector<double> hiddenOutputs = layer.forward(inputs);
+
+    std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
+
+    return finalOutput[0];
+}
+
+int main(){
+
+    Layer layer(2, 3);
+    Layer outputLayer(3, 1);
+
+    double learningRate = 0.01;
+
+    std::vector<std::vector<double>> trainingInputs = { {1.0, 1.0}, {1.0, 2.0}, {2.0, 3.0}, {3.0, 3.0} };
+    std::vector<double> targets = { 0.0, 0.0, 1.0, 1.0 };
+
+    std::vector<std::vector<double>> testInputs = { {1.0, 3.0}, {3.0, 2.0} };
+    std::vector<double> testTargets = { 0.0, 1.0 };
+
+    std::cout << "Training-------------------" << "\n";
+
+    trainNetwork(layer, outputLayer, trainingInputs, targets, 10000, learningRate);
 
     int correct = 0;
 
     for(int i = 0; i < trainingInputs.size(); i++){
-        std::vector<double> hiddenOutputs = layer.forward(trainingInputs[i]);
+        double prediction = predict(layer, outputLayer, trainingInputs[i]);
 
-        std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
-
-        int predictedClass = classify(finalOutput[0]);
+        int predictedClass = classify(prediction);
 
         if(predictedClass == static_cast<int>(targets[i])){
             correct++;
         }
 
-        std::cout << "Input: [" << trainingInputs[i][0] << ", " << trainingInputs[i][1] << "]" << " Prediction: " << finalOutput[0] << " Predicted Class: " << predictedClass << " target: " << targets[i] << "\n";
+        std::cout << "Input: [" << trainingInputs[i][0] << ", " << trainingInputs[i][1] << "]" << " Prediction: " << prediction << " Predicted Class: " << predictedClass << " target: " << targets[i] << "\n";
     }
 
     double accuracy = 100.0 * correct / trainingInputs.size();
@@ -258,17 +215,15 @@ int main(){
     int testCorrect = 0;
 
     for(int i = 0; i < testInputs.size(); i++){
-        std::vector<double> hiddenOutputs = layer.forward(testInputs[i]);
+        double prediction = predict(layer, outputLayer, testInputs[i]);
 
-        std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
-
-        int predictedClass = classify(finalOutput[0]);
+        int predictedClass = classify(prediction);
 
         if(predictedClass == static_cast<int>(testTargets[i])){
             testCorrect++;
         }
 
-        std::cout << "Input: [" << testInputs[i][0] << ", " << testInputs[i][1] << "]" << " Prediction: " << finalOutput[0] << " Predicted Class: " << predictedClass << " target: " << testTargets[i] << "\n";
+        std::cout << "Input: [" << testInputs[i][0] << ", " << testInputs[i][1] << "]" << " Prediction: " << prediction << " Predicted Class: " << predictedClass << " target: " << testTargets[i] << "\n";
 
     }
 
