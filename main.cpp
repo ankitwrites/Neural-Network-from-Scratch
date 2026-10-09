@@ -177,6 +177,9 @@ int main(){
     std::vector<std::vector<double>> trainingInputs = { {1.0, 1.0}, {1.0, 2.0}, {2.0, 3.0}, {3.0, 3.0} };
     std::vector<double> targets = { 0.0, 0.0, 1.0, 1.0 };
 
+    std::vector<std::vector<double>> testInputs = { {1.0, 3.0}, {3.0, 2.0} };
+    std::vector<double> testTargets = { 0.0, 1.0 };
+
     /*std::vector<double> targets = { 1.0, 0.0, 1.0};
 
     for(int epoch = 0; epoch < 10000; epoch++){
@@ -247,6 +250,30 @@ int main(){
 
     double accuracy = 100.0 * correct / trainingInputs.size();
     std::cout << "Accuracy: " << accuracy << "%\n";
+
+    // test dataset
+
+    std::cout << "Test-------------------" << "\n";
+
+    int testCorrect = 0;
+
+    for(int i = 0; i < testInputs.size(); i++){
+        std::vector<double> hiddenOutputs = layer.forward(testInputs[i]);
+
+        std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
+
+        int predictedClass = classify(finalOutput[0]);
+
+        if(predictedClass == static_cast<int>(testTargets[i])){
+            testCorrect++;
+        }
+
+        std::cout << "Input: [" << testInputs[i][0] << ", " << testInputs[i][1] << "]" << " Prediction: " << finalOutput[0] << " Predicted Class: " << predictedClass << " target: " << testTargets[i] << "\n";
+
+    }
+
+    double testAccuracy = 100.0 * testCorrect / testInputs.size();
+    std::cout << "Accuracy: " << testAccuracy << "%\n";
 
 
     return 0;
