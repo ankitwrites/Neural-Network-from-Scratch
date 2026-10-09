@@ -35,6 +35,10 @@ class Neuron {
             bias = distribution(generator);
         }
 
+        double getWeight(int index) const {
+            return weights[index];
+        }
+
         /*void train(const std::vector<double>& inputs, double target, double learningRate) {
             double prediction = forward(inputs);
             double error = prediction - target;
@@ -71,6 +75,10 @@ class Neuron {
             }
             bias -= learningRate * gradient;
         }
+
+        double calculateHiddenGradient(double outputGradient, double outputWeight){
+            return lastOutput * (1.0 - lastOutput) * outputGradient * outputWeight;
+        }
 };
 
 class Layer {
@@ -97,6 +105,10 @@ class Layer {
             return outputs;
         }
 
+        double getNeuronWeight(int index) const {
+            return neurons[0].getWeight(index);
+        }
+
         /*void train(const std::vector<double>& inputs, const std::vector<double>& targets, double learningRate){
             for(int i = 0; i  < neurons.size(); i++){
 
@@ -111,6 +123,22 @@ class Layer {
 
         void updateWeights(const std::vector<double>& inputs, double gradient, double learningRate){
             neurons[0].updateWeights(inputs, gradient, learningRate);
+        }
+
+        std::vector<double> calculateHiddenGradients(double outputGradient, const Layer& outputLayer){
+            std::vector<double> gradients;
+            for(int i = 0; i < neurons.size(); i++){
+                double outputWeight = outputLayer.getNeuronWeight(i);
+                double gradient = neurons[i].calculateHiddenGradient(outputGradient, outputWeight);
+                gradients.push_back(gradient);
+            }
+            return gradients;
+        }
+
+        void updateHiddenWeights(const std::vector<double>& inputs, const std::vector<double>& gradients, double learningRate){
+            for(int i = 0; i < neurons.size(); i++){
+                neurons[i].updateWeights(inputs, gradients[i], learningRate);
+            }
         }
 
 };
@@ -141,6 +169,7 @@ int main(){
     double learningRate = 0.01;
 
     std::vector<double> inputs = { 2.0, 3.0 };
+    double target = 1.0;
 
     /*std::vector<double> targets = { 1.0, 0.0, 1.0};
 
@@ -148,16 +177,40 @@ int main(){
         layer.train(inputs, targets, learningRate);
     }*/
 
+    /*for(int epoch = 0; epoch < 1000; epoch++){
+        std::vector<double> hiddenOutputs = layer.forward(inputs);
+
+        std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
+    
+
+        double gradient = outputLayer.calculateGradient(target);
+
+        std::cout << "Prediction: " << finalOutput[0] << " Gradient: " << gradient << '\n';
+
+        outputLayer.updateWeights(hiddenOutputs, gradient, learningRate);
+    }*/
+
+    for(int epoch = 0; epoch < 10000; epoch++){
+        std::vector<double> hiddenOutputs = layer.forward(inputs);
+
+        std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
+
+        double outputGradient = outputLayer.calculateGradient(target);
+
+        std::vector<double> hiddenGradients = layer.calculateHiddenGradients(outputGradient, outputLayer);
+
+        layer.updateHiddenWeights(inputs, hiddenGradients, learningRate);
+
+        outputLayer.updateWeights(hiddenOutputs, outputGradient, learningRate);
+    }
+
     std::vector<double> hiddenOutputs = layer.forward(inputs);
 
     std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
-    
 
-    double gradient = outputLayer.calculateGradient(1.0);
+    std::cout << "Prediction: " << finalOutput[0] << '\n';
 
-    std::cout << "Prediction: " << finalOutput[0] << " Gradient: " << gradient << '\n';
-
-    outputLayer.updateWeights(hiddenOutputs, gradient, learningRate);
+    std::cout << "Target: " << target << '\n';
 
 
     return 0;
