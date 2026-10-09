@@ -16,6 +16,12 @@ int classify(double prediction){
     return 0;
 }
 
+//loss
+double calculateLoss(double prediction, double target) {
+    double error = prediction - target;
+    return 0.5 * error * error;
+}
+
 class Neuron {
     private:
         std::vector<double> weights;
@@ -205,6 +211,21 @@ int main(){
             layer.updateHiddenWeights(trainingInputs[i], hiddenGradients, learningRate);
 
             outputLayer.updateWeights(hiddenOutputs, outputGradient, learningRate);
+
+
+            //loss after every 1,000 epochs
+            if((epoch + 1) % 1000 == 0){
+                double totalLoss = 0.0;
+                for(int i = 0; i < trainingInputs.size(); i++){
+                    std::vector<double> hiddenOutputs = layer.forward(trainingInputs[i]);
+
+                    std::vector<double> finalOutput = outputLayer.forward(hiddenOutputs);
+
+                    totalLoss += calculateLoss(finalOutput[0], targets[i]);
+                }
+                double averageLoss = totalLoss / trainingInputs.size();
+                std::cout << "epoch : " << epoch + 1 << " average Loss: " << averageLoss << "\n";
+            }
         }
     }
 
